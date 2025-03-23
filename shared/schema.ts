@@ -20,6 +20,7 @@ export const events = pgTable("events", {
   capacity: integer("capacity"),
   createdBy: text("created_by"),
   imageUrl: text("image_url"),
+  eventLink: text("event_link"),
 });
 
 // Attendees table
@@ -51,6 +52,7 @@ export const eventFormSchema = insertEventSchema.extend({
   date: z.coerce.date(),
   capacity: z.coerce.number().min(1).optional(),
   imageUrl: z.string().optional(),
+  eventLink: z.string().url("O link do evento deve ser uma URL válida").optional(),
 });
 
 export const attendeeFormSchema = insertAttendeeSchema.extend({

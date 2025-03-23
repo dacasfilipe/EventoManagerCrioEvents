@@ -6,12 +6,13 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { format } from "date-fns";
-import { Clock, Upload, Image } from "lucide-react";
+import { Clock, Upload, Image, Globe } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -50,6 +51,7 @@ export default function CreateEventForm({ onSuccess }: CreateEventFormProps) {
       status: "pending",
       capacity: 50,
       imageUrl: "",
+      eventLink: "",
     },
   });
 
@@ -304,6 +306,30 @@ export default function CreateEventForm({ onSuccess }: CreateEventFormProps) {
                   ))}
                 </SelectContent>
               </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="eventLink"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Link do Evento</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Globe className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                  <Input 
+                    placeholder="https://exemplo.com/seu-evento" 
+                    className="pl-8"
+                    {...field} 
+                  />
+                </div>
+              </FormControl>
+              <FormDescription>
+                Link para a página oficial ou inscrição do evento (opcional)
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

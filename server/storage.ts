@@ -96,7 +96,8 @@ export class MemStorage implements IStorage {
       status: eventData.status || "pending",
       capacity: eventData.capacity === undefined ? null : eventData.capacity,
       createdBy: eventData.createdBy || null,
-      imageUrl: eventData.imageUrl || ""
+      imageUrl: eventData.imageUrl || "",
+      eventLink: eventData.eventLink || null
     };
     this.events.set(id, event);
     return event;
