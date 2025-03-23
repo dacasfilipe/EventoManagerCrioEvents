@@ -60,6 +60,7 @@ export default function AuthPage() {
     defaultValues: {
       username: "",
       password: "",
+      confirmPassword: "",
       email: "",
       name: "",
     },
@@ -222,6 +223,20 @@ export default function AuthPage() {
                           <FormLabel>Senha</FormLabel>
                           <FormControl>
                             <Input type="password" placeholder="Crie uma senha forte" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={registerForm.control}
+                      name="confirmPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Confirme a senha</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="Digite a senha novamente" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
