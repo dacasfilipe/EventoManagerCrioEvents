@@ -30,6 +30,17 @@ export interface IStorage {
   getActivitiesByEvent(eventId: number): Promise<Activity[]>;
   createActivity(activity: InsertActivity): Promise<Activity>;
   
+  // User operations
+  getUsers(): Promise<User[]>;
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByProviderId(provider: string, providerId: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
+  deleteUser(id: number): Promise<boolean>;
+  setUserRole(id: number, role: 'admin' | 'user'): Promise<User | undefined>;
+  
   // Statistics
   getEventStats(): Promise<{
     upcoming: number;
@@ -39,23 +50,40 @@ export interface IStorage {
   }>;
   getEventsByMonth(year: number, month: number): Promise<Event[]>;
   getCategoryCounts(): Promise<{ category: string; count: number }[]>;
+  
+  // Session Store
+  sessionStore: any; // express-session store
 }
+
+// Importando o módulo de sessão
+import session from "express-session";
+import createMemoryStore from "memorystore";
+
+const MemoryStore = createMemoryStore(session);
 
 export class MemStorage implements IStorage {
   private events: Map<number, Event>;
   private attendees: Map<number, Attendee>;
   private activities: Map<number, Activity>;
+  private users: Map<number, User>;
   private eventId: number;
   private attendeeId: number;
   private activityId: number;
+  private userId: number;
+  sessionStore: session.Store;
 
   constructor() {
     this.events = new Map();
     this.attendees = new Map();
     this.activities = new Map();
+    this.users = new Map();
     this.eventId = 1;
     this.attendeeId = 1;
     this.activityId = 1;
+    this.userId = 1;
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000 // 24 horas
+    });
   }
 
   // Event operations
@@ -178,10 +206,77 @@ export class MemStorage implements IStorage {
       id,
       eventId: activityData.eventId || null,
       attendeeId: activityData.attendeeId || null,
+      userId: activityData.userId || null,
       timestamp: activityData.timestamp || new Date() 
     };
     this.activities.set(id, activity);
     return activity;
+  }
+  
+  // User operations
+  async getUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.username === username
+    );
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.email === email
+    );
+  }
+
+  async getUserByProviderId(provider: string, providerId: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.provider === provider && user.providerId === providerId
+    );
+  }
+
+  async createUser(userData: InsertUser): Promise<User> {
+    const id = this.userId++;
+    const user: User = {
+      ...userData,
+      id,
+      name: userData.name || null,
+      password: userData.password || null,
+      providerId: userData.providerId || null,
+      avatarUrl: userData.avatarUrl || null,
+      role: userData.role || "user",
+      provider: userData.provider || "local",
+      createdAt: new Date()
+    };
+    this.users.set(id, user);
+    return user;
+  }
+
+  async updateUser(id: number, userData: Partial<InsertUser>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+
+    const updatedUser = { ...user, ...userData };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  async deleteUser(id: number): Promise<boolean> {
+    return this.users.delete(id);
+  }
+
+  async setUserRole(id: number, role: 'admin' | 'user'): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+
+    const updatedUser = { ...user, role };
+    this.users.set(id, updatedUser);
+    return updatedUser;
   }
 
   // Statistics
