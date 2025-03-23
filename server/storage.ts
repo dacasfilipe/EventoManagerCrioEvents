@@ -4,6 +4,9 @@ import {
   activities, type Activity, type InsertActivity,
   users, type User, type InsertUser
 } from "@shared/schema";
+import { db, pool } from "./db";
+import { eq, and, between, desc, count, sql } from "drizzle-orm";
+import { gte, lte } from "drizzle-orm/expressions";
 
 // Interface for all storage operations
 export interface IStorage {
@@ -58,8 +61,10 @@ export interface IStorage {
 // Importando o módulo de sessão
 import session from "express-session";
 import createMemoryStore from "memorystore";
+import connectPgSimple from "connect-pg-simple";
 
 const MemoryStore = createMemoryStore(session);
+const PostgresSessionStore = connectPgSimple(session);
 
 export class MemStorage implements IStorage {
   private events: Map<number, Event>;
