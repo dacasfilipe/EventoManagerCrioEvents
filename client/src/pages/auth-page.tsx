@@ -252,12 +252,22 @@ export default function AuthPage() {
             </div>
             
             <div className="grid grid-cols-1 gap-3">
-              <Button variant="outline" className="w-full" type="button">
+              <Button 
+                variant="outline" 
+                className="w-full" 
+                type="button"
+                onClick={() => window.location.href = "/auth/google"}
+              >
                 <i className="ri-google-fill mr-2 text-red-500"></i>
                 Google
               </Button>
               {/* Facebook button pode ser ativado posteriormente */}
-              {/* <Button variant="outline" className="w-full" type="button">
+              {/* <Button 
+                variant="outline" 
+                className="w-full" 
+                type="button"
+                onClick={() => window.location.href = "/auth/facebook"}
+              >
                 <i className="ri-facebook-fill mr-2 text-blue-600"></i>
                 Facebook
               </Button> */}
@@ -267,30 +277,69 @@ export default function AuthPage() {
       </div>
       
       {/* Hero Section */}
-      <div className="hidden md:flex md:w-1/2 bg-primary-500 p-12 items-center justify-center flex-col text-white">
-        <div className="max-w-md space-y-6">
-          <h1 className="text-4xl font-bold">EventoPro</h1>
-          <p className="text-xl">
+      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-primary-600 to-primary-800 p-12 items-center justify-center flex-col text-white">
+        <div className="max-w-md space-y-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold mb-4">EventoPro</h1>
+            <div className="h-1 w-24 bg-white/30 mx-auto rounded-full"></div>
+          </div>
+          
+          <p className="text-xl leading-relaxed">
             A plataforma completa para gerenciar seus eventos de forma fácil e profissional.
           </p>
-          <ul className="space-y-2">
-            <li className="flex items-center">
-              <i className="ri-check-line mr-2 text-white"></i>
-              Organize seus eventos em um só lugar
-            </li>
-            <li className="flex items-center">
-              <i className="ri-check-line mr-2 text-white"></i>
-              Gerencie participantes e atividades
-            </li>
-            <li className="flex items-center">
-              <i className="ri-check-line mr-2 text-white"></i>
-              Visualize estatísticas e insights
-            </li>
-            <li className="flex items-center">
-              <i className="ri-check-line mr-2 text-white"></i>
-              Compartilhe eventos facilmente
-            </li>
-          </ul>
+          
+          <div className="grid grid-cols-1 gap-6">
+            <div className="bg-white/10 rounded-lg p-5 backdrop-blur-sm">
+              <h3 className="text-lg font-semibold mb-3 flex items-center">
+                <i className="ri-calendar-event-fill mr-3 text-xl"></i>
+                Gestão de Eventos
+              </h3>
+              <ul className="space-y-2 text-white/90">
+                <li className="flex items-start">
+                  <i className="ri-check-line mr-2 mt-1 text-primary-200"></i>
+                  <span>Crie eventos com imagens, descrições e informações detalhadas</span>
+                </li>
+                <li className="flex items-start">
+                  <i className="ri-check-line mr-2 mt-1 text-primary-200"></i>
+                  <span>Programe datas e horários com visibilidade em calendário</span>
+                </li>
+              </ul>
+            </div>
+            
+            <div className="bg-white/10 rounded-lg p-5 backdrop-blur-sm">
+              <h3 className="text-lg font-semibold mb-3 flex items-center">
+                <i className="ri-group-fill mr-3 text-xl"></i>
+                Gerenciamento de Participantes
+              </h3>
+              <ul className="space-y-2 text-white/90">
+                <li className="flex items-start">
+                  <i className="ri-check-line mr-2 mt-1 text-primary-200"></i>
+                  <span>Controle de presença e confirmações</span>
+                </li>
+                <li className="flex items-start">
+                  <i className="ri-check-line mr-2 mt-1 text-primary-200"></i>
+                  <span>Gestão de contatos e comunicações</span>
+                </li>
+              </ul>
+            </div>
+            
+            <div className="bg-white/10 rounded-lg p-5 backdrop-blur-sm">
+              <h3 className="text-lg font-semibold mb-3 flex items-center">
+                <i className="ri-pie-chart-fill mr-3 text-xl"></i>
+                Análise e Relatórios
+              </h3>
+              <ul className="space-y-2 text-white/90">
+                <li className="flex items-start">
+                  <i className="ri-check-line mr-2 mt-1 text-primary-200"></i>
+                  <span>Dashboard com estatísticas e métricas</span>
+                </li>
+                <li className="flex items-start">
+                  <i className="ri-check-line mr-2 mt-1 text-primary-200"></i>
+                  <span>Acompanhamento de todas as atividades em tempo real</span>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>
