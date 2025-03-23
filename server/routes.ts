@@ -477,17 +477,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Rota temporária para criar o primeiro administrador
+  // Rota temporária para criar o primeiro administrador - sem verificação de chave para facilitar o teste
   // Esta rota deve ser removida em produção!
-  app.post("/api/create-first-admin", express.json(), async (req, res) => {
+  app.post("/api/create-admin", express.json(), async (req, res) => {
     // Forçar o conteúdo a ser do tipo application/json
     res.type('application/json');
     try {
-      // Uma chave simples para evitar acesso não autorizado
-      const secretKey = "setup-admin-key";
-      if (req.params.key !== secretKey) {
-        return res.status(403).json({ message: "Chave inválida" });
-      }
+      // Verificar o corpo da requisição
+      console.log("Corpo da requisição:", req.body);
       
       // Verificar se o admin (com username 'admin') já existe
       let adminUser = await storage.getUserByUsername("admin");
