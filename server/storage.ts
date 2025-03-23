@@ -333,4 +333,259 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Implementação PostgreSQL do armazenamento
+export class DatabaseStorage implements IStorage {
+  sessionStore: session.Store;
+
+  constructor() {
+    this.sessionStore = new PostgresSessionStore({
+      pool,
+      createTableIfMissing: true
+    });
+  }
+
+  // Event operations
+  async getEvents(): Promise<Event[]> {
+    return await db.select().from(events).orderBy(desc(events.date));
+  }
+
+  async getEvent(id: number): Promise<Event | undefined> {
+    const result = await db.select().from(events).where(eq(events.id, id));
+    return result[0];
+  }
+
+  async getEventsByCategory(category: string): Promise<Event[]> {
+    return await db.select().from(events).where(eq(events.category, category));
+  }
+
+  async getEventsByStatus(status: string): Promise<Event[]> {
+    return await db.select().from(events).where(eq(events.status, status));
+  }
+
+  async getEventsByDateRange(startDate: Date, endDate: Date): Promise<Event[]> {
+    return await db.select().from(events).where(
+      and(
+        gte(events.date, startDate),
+        lte(events.date, endDate)
+      )
+    );
+  }
+
+  async createEvent(event: InsertEvent): Promise<Event> {
+    const result = await db.insert(events).values({
+      ...event,
+      imageUrl: event.imageUrl || "",
+      status: event.status || "pending",
+      capacity: event.capacity === undefined ? null : event.capacity,
+      createdBy: event.createdBy || null,
+      eventLink: event.eventLink || null,
+      userId: event.userId || null
+    }).returning();
+    return result[0];
+  }
+
+  async updateEvent(id: number, event: Partial<InsertEvent>): Promise<Event | undefined> {
+    const result = await db.update(events)
+      .set(event)
+      .where(eq(events.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteEvent(id: number): Promise<boolean> {
+    const result = await db.delete(events).where(eq(events.id, id));
+    return result.count > 0;
+  }
+
+  // Attendee operations
+  async getAttendees(): Promise<Attendee[]> {
+    return await db.select().from(attendees);
+  }
+
+  async getAttendee(id: number): Promise<Attendee | undefined> {
+    const result = await db.select().from(attendees).where(eq(attendees.id, id));
+    return result[0];
+  }
+
+  async getAttendeesByEvent(eventId: number): Promise<Attendee[]> {
+    return await db.select().from(attendees).where(eq(attendees.eventId, eventId));
+  }
+
+  async createAttendee(attendee: InsertAttendee): Promise<Attendee> {
+    const result = await db.insert(attendees).values({
+      ...attendee,
+      status: attendee.status || "pending"
+    }).returning();
+    return result[0];
+  }
+
+  async updateAttendee(id: number, attendee: Partial<InsertAttendee>): Promise<Attendee | undefined> {
+    const result = await db.update(attendees)
+      .set(attendee)
+      .where(eq(attendees.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteAttendee(id: number): Promise<boolean> {
+    const result = await db.delete(attendees).where(eq(attendees.id, id));
+    return result.count > 0;
+  }
+
+  // Activity operations
+  async getActivities(): Promise<Activity[]> {
+    return await db.select().from(activities).orderBy(desc(activities.timestamp));
+  }
+
+  async getActivitiesByEvent(eventId: number): Promise<Activity[]> {
+    return await db.select()
+      .from(activities)
+      .where(eq(activities.eventId, eventId))
+      .orderBy(desc(activities.timestamp));
+  }
+
+  async createActivity(activity: InsertActivity): Promise<Activity> {
+    const result = await db.insert(activities).values({
+      ...activity,
+      eventId: activity.eventId || null,
+      attendeeId: activity.attendeeId || null,
+      userId: activity.userId || null,
+      timestamp: activity.timestamp || new Date()
+    }).returning();
+    return result[0];
+  }
+
+  // User operations
+  async getUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+
+  async getUser(id: number): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.id, id));
+    return result[0];
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.username, username));
+    return result[0];
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.email, email));
+    return result[0];
+  }
+
+  async getUserByProviderId(provider: string, providerId: string): Promise<User | undefined> {
+    const result = await db.select()
+      .from(users)
+      .where(and(
+        eq(users.provider, provider),
+        eq(users.providerId, providerId)
+      ));
+    return result[0];
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const result = await db.insert(users).values({
+      ...user,
+      name: user.name || null,
+      password: user.password || null,
+      providerId: user.providerId || null,
+      avatarUrl: user.avatarUrl || null,
+      role: user.role || "user",
+      provider: user.provider || "local",
+      createdAt: new Date()
+    }).returning();
+    return result[0];
+  }
+
+  async updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined> {
+    const result = await db.update(users)
+      .set(user)
+      .where(eq(users.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteUser(id: number): Promise<boolean> {
+    const result = await db.delete(users).where(eq(users.id, id));
+    return result.count > 0;
+  }
+
+  async setUserRole(id: number, role: 'admin' | 'user'): Promise<User | undefined> {
+    const result = await db.update(users)
+      .set({ role })
+      .where(eq(users.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Statistics
+  async getEventStats(): Promise<{
+    upcoming: number;
+    participants: number;
+    completed: number;
+    cancelled: number;
+  }> {
+    const now = new Date();
+    
+    const upcomingEvents = await db.select({ value: count() })
+      .from(events)
+      .where(and(
+        gte(events.date, now),
+        sql`${events.status} != 'cancelled'`
+      ));
+    
+    const completedEvents = await db.select({ value: count() })
+      .from(events)
+      .where(and(
+        lte(events.date, now),
+        sql`${events.status} != 'cancelled'`
+      ));
+    
+    const cancelledEvents = await db.select({ value: count() })
+      .from(events)
+      .where(eq(events.status, 'cancelled'));
+    
+    const confirmedAttendees = await db.select({ value: count() })
+      .from(attendees)
+      .where(eq(attendees.status, 'confirmed'));
+    
+    return {
+      upcoming: upcomingEvents[0]?.value || 0,
+      completed: completedEvents[0]?.value || 0,
+      cancelled: cancelledEvents[0]?.value || 0,
+      participants: confirmedAttendees[0]?.value || 0
+    };
+  }
+
+  async getEventsByMonth(year: number, month: number): Promise<Event[]> {
+    const startDate = new Date(year, month, 1);
+    const endDate = new Date(year, month + 1, 0);
+    
+    return await db.select()
+      .from(events)
+      .where(and(
+        gte(events.date, startDate),
+        lte(events.date, endDate)
+      ));
+  }
+
+  async getCategoryCounts(): Promise<{ category: string; count: number }[]> {
+    const results = await db
+      .select({
+        category: events.category,
+        count: count()
+      })
+      .from(events)
+      .groupBy(events.category);
+    
+    return results.map(result => ({
+      category: result.category,
+      count: Number(result.count)
+    }));
+  }
+}
+
+// Use DatabaseStorage ao invés de MemStorage para persistência no PostgreSQL
+export const storage = new DatabaseStorage();
