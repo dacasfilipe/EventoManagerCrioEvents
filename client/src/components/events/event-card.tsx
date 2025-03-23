@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Edit, Trash, Eye } from "lucide-react";
+import { MoreVertical, Edit, Trash, Eye, Globe, MapPin, Clock, Users, ExternalLink } from "lucide-react";
 import StatusBadge from "@/components/ui/status-badge";
 import AvatarGroup from "@/components/ui/avatar-group";
 
@@ -43,22 +43,39 @@ export default function EventCard({ event, attendeeCount = 0, onDelete }: EventC
           </div>
           
           <div className="mt-1 flex items-center text-sm text-gray-500">
-            <i className="ri-time-line mr-1"></i>
+            <Clock className="h-3.5 w-3.5 mr-1" />
             <span>{event.startTime} - {event.endTime}</span>
             <span className="mx-2">•</span>
-            <i className="ri-map-pin-line mr-1"></i>
+            <MapPin className="h-3.5 w-3.5 mr-1" />
             <span>{event.location}</span>
           </div>
           
+          {event.eventLink && (
+            <div className="mt-1 flex items-center text-sm">
+              <Globe className="h-3.5 w-3.5 mr-1 text-gray-500" />
+              <a 
+                href={event.eventLink} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary-600 hover:text-primary-800 truncate flex items-center"
+              >
+                <span className="truncate mr-1">{event.eventLink.replace(/^https?:\/\//, '')}</span>
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          )}
+          
           <div className="mt-2 flex items-center">
-            <AvatarGroup max={3} />
-            {attendeeCount > 0 ? (
-              <Link href={`/events/${event.id}`} className="ml-2 text-sm text-primary-600 font-medium">
-                +{attendeeCount} participantes
-              </Link>
-            ) : (
-              <span className="ml-2 text-sm text-gray-500">Sem participantes</span>
-            )}
+            <div className="flex items-center">
+              <Users className="h-3.5 w-3.5 mr-1.5 text-gray-500" />
+              {attendeeCount > 0 ? (
+                <Link href={`/events/${event.id}`} className="text-sm text-primary-600 font-medium">
+                  {attendeeCount} participantes
+                </Link>
+              ) : (
+                <span className="text-sm text-gray-500">Sem participantes</span>
+              )}
+            </div>
           </div>
         </div>
         

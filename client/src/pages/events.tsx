@@ -4,9 +4,12 @@ import { Event } from "@shared/schema";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import EventCard from "@/components/events/event-card";
+import EventCardGrid from "@/components/events/event-card-grid";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { LayoutGrid, LayoutList } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +26,7 @@ export default function Events() {
   const [eventToDelete, setEventToDelete] = useState<number | null>(null);
   const { toast } = useToast();
   const [filters, setFilters] = useState({});
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   
   // Fetch all events
   const { data: events = [], isLoading } = useQuery<Event[]>({
@@ -99,10 +103,30 @@ export default function Events() {
         
         <div className="p-4 md:p-6 pb-16">
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-            <div className="border-b border-gray-200 p-4 flex items-center justify-between">
+            <div className="border-b border-gray-200 p-4 flex items-center justify-between flex-wrap gap-2">
               <h2 className="text-lg font-medium text-gray-900">Lista de Eventos</h2>
-              <div className="flex items-center">
-                <select className="pr-8 pl-3 py-1.5 text-sm border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center border rounded-md overflow-hidden">
+                  <Button
+                    variant={viewMode === "list" ? "default" : "ghost"}
+                    size="sm"
+                    className="rounded-none"
+                    onClick={() => setViewMode("list")}
+                  >
+                    <LayoutList className="h-4 w-4 mr-1" />
+                    Lista
+                  </Button>
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    size="sm"
+                    className="rounded-none"
+                    onClick={() => setViewMode("grid")}
+                  >
+                    <LayoutGrid className="h-4 w-4 mr-1" />
+                    Grade
+                  </Button>
+                </div>
+                <select className="pr-8 pl-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500">
                   <option value="date-asc">Data (mais próxima)</option>
                   <option value="date-desc">Data (mais distante)</option>
                   <option value="name-asc">Nome (A-Z)</option>
@@ -111,35 +135,61 @@ export default function Events() {
               </div>
             </div>
 
-            <div className="divide-y divide-gray-200">
-              {isLoading ? (
-                Array(5).fill(0).map((_, i) => (
-                  <div key={i} className="p-4">
-                    <div className="flex items-start gap-4">
-                      <Skeleton className="h-14 w-14" />
-                      <div className="flex-1">
-                        <Skeleton className="h-5 w-1/3 mb-2" />
-                        <Skeleton className="h-4 w-1/2 mb-2" />
-                        <Skeleton className="h-4 w-1/4" />
+            {viewMode === "list" ? (
+              <div className="divide-y divide-gray-200">
+                {isLoading ? (
+                  Array(5).fill(0).map((_, i) => (
+                    <div key={i} className="p-4">
+                      <div className="flex items-start gap-4">
+                        <Skeleton className="h-14 w-14" />
+                        <div className="flex-1">
+                          <Skeleton className="h-5 w-1/3 mb-2" />
+                          <Skeleton className="h-4 w-1/2 mb-2" />
+                          <Skeleton className="h-4 w-1/4" />
+                        </div>
                       </div>
                     </div>
+                  ))
+                ) : sortedEvents.length === 0 ? (
+                  <div className="p-8 text-center text-gray-500">
+                    <p>Nenhum evento encontrado</p>
                   </div>
-                ))
-              ) : sortedEvents.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">
-                  <p>Nenhum evento encontrado</p>
-                </div>
-              ) : (
-                sortedEvents.map((event) => (
-                  <EventCard 
-                    key={event.id} 
-                    event={event} 
-                    attendeeCount={attendeeCounts[event.id] || 0}
-                    onDelete={handleDeleteEvent}
-                  />
-                ))
-              )}
-            </div>
+                ) : (
+                  sortedEvents.map((event) => (
+                    <EventCard 
+                      key={event.id} 
+                      event={event} 
+                      attendeeCount={attendeeCounts[event.id] || 0}
+                      onDelete={handleDeleteEvent}
+                    />
+                  ))
+                )}
+              </div>
+            ) : (
+              <div className="p-4">
+                {isLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {Array(6).fill(0).map((_, i) => (
+                      <Skeleton key={i} className="h-80 w-full rounded-lg" />
+                    ))}
+                  </div>
+                ) : sortedEvents.length === 0 ? (
+                  <div className="p-8 text-center text-gray-500">
+                    <p>Nenhum evento encontrado</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {sortedEvents.map((event) => (
+                      <EventCardGrid
+                        key={event.id}
+                        event={event}
+                        attendeeCount={attendeeCounts[event.id] || 0}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </main>
