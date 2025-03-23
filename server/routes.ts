@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import express, { type Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { 
@@ -11,8 +11,53 @@ import {
 import { format } from "date-fns";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import multer from "multer";
+import path from "path";
+import { v4 as uuidv4 } from "uuid";
+import fs from "fs";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Configuração de upload com multer
+  const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+  
+  // Certifique-se de que o diretório de uploads exista
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+
+  // Configuração de armazenamento para o multer
+  const multerStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = uuidv4();
+      const fileExt = path.extname(file.originalname);
+      cb(null, uniqueSuffix + fileExt);
+    }
+  });
+
+  // Filtro para aceitar apenas imagens
+  const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Tipo de arquivo não suportado. Apenas JPEG, PNG, GIF e WEBP são aceitos."));
+    }
+  };
+
+  const upload = multer({ 
+    storage: multerStorage, 
+    fileFilter: fileFilter,
+    limits: {
+      fileSize: 5 * 1024 * 1024 // 5MB
+    }
+  });
+  
+  // Servir arquivos estáticos
+  app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')));
+
   // Error handling middleware for zod validation errors
   const handleZodError = (err: unknown, res: Response) => {
     if (err instanceof ZodError) {
@@ -280,6 +325,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching category counts:", error);
       res.status(500).json({ message: "Failed to fetch category counts" });
+    }
+  });
+
+  // Upload de imagens
+  app.post("/api/upload", upload.single("image"), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "Nenhum arquivo enviado" });
+      }
+
+      // Construir a URL para a imagem
+      const imageUrl = `/uploads/${req.file.filename}`;
+      
+      res.json({ 
+        imageUrl,
+        message: "Imagem enviada com sucesso" 
+      });
+    } catch (error) {
+      console.error("Erro ao fazer upload da imagem:", error);
+      res.status(500).json({ message: "Falha ao fazer upload da imagem" });
     }
   });
 
