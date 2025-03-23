@@ -6,6 +6,7 @@ import Header from "@/components/layout/header";
 import StatsCard from "@/components/dashboard/stats-card";
 import CategoryCard from "@/components/dashboard/category-card";
 import EventCard from "@/components/events/event-card";
+import EventCardGrid from "@/components/events/event-card-grid";
 import MiniCalendar from "@/components/ui/mini-calendar";
 import ActivityTimeline from "@/components/dashboard/activity-timeline";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,7 +43,12 @@ export default function Dashboard() {
     },
   });
 
-  const { data: categoryCounts = [], isLoading: isCategoryLoading } = useQuery({
+  interface CategoryCount {
+    category: string;
+    count: number;
+  }
+
+  const { data: categoryCounts = [], isLoading: isCategoryLoading } = useQuery<CategoryCount[]>({
     queryKey: ["/api/categories/counts"],
     queryFn: async () => {
       const response = await fetch("/api/categories/counts");
@@ -89,8 +95,8 @@ export default function Dashboard() {
   }).slice(0, 4);
 
   // Calculate percentage for category cards
-  const maxCategoryCount = Math.max(...(categoryCounts.map((c) => c.count) || [1]));
-  const categoryCardsWithPercentage = categoryCounts.map((category) => ({
+  const maxCategoryCount = Math.max(...(categoryCounts.map((c: CategoryCount) => c.count) || [1]));
+  const categoryCardsWithPercentage = categoryCounts.map((category: CategoryCount) => ({
     ...category,
     percentage: (category.count / maxCategoryCount) * 100,
   }));
@@ -159,33 +165,27 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div className="divide-y divide-gray-200">
+                <div className="p-4">
                   {isEventsLoading ? (
-                    Array(4).fill(0).map((_, i) => (
-                      <div key={i} className="p-4">
-                        <div className="flex items-start gap-4">
-                          <Skeleton className="h-14 w-14" />
-                          <div className="flex-1">
-                            <Skeleton className="h-5 w-1/3 mb-2" />
-                            <Skeleton className="h-4 w-1/2 mb-2" />
-                            <Skeleton className="h-4 w-1/4" />
-                          </div>
-                        </div>
-                      </div>
-                    ))
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {Array(4).fill(0).map((_, i) => (
+                        <Skeleton key={i} className="h-64 w-full rounded-lg" />
+                      ))}
+                    </div>
                   ) : upcomingEvents.length === 0 ? (
                     <div className="p-8 text-center text-gray-500">
                       <p>Nenhum evento próximo</p>
                     </div>
                   ) : (
-                    upcomingEvents.map((event) => (
-                      <EventCard 
-                        key={event.id} 
-                        event={event} 
-                        attendeeCount={Math.floor(Math.random() * 50) + 5} // Random attendee count for demo
-                        onDelete={handleDeleteEvent}
-                      />
-                    ))
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {upcomingEvents.map((event) => (
+                        <EventCardGrid
+                          key={event.id}
+                          event={event}
+                          attendeeCount={Math.floor(Math.random() * 50) + 5} // Random attendee count for demo
+                        />
+                      ))}
+                    </div>
                   )}
                 </div>
 
@@ -211,7 +211,7 @@ export default function Dashboard() {
                       <p>Nenhuma categoria cadastrada</p>
                     </div>
                   ) : (
-                    categoryCardsWithPercentage.slice(0, 3).map((category) => (
+                    categoryCardsWithPercentage.slice(0, 3).map((category: CategoryCount & { percentage: number }) => (
                       <CategoryCard 
                         key={category.category}
                         category={category.category}
