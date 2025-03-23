@@ -16,6 +16,16 @@ import multer from "multer";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
+import { scrypt, randomBytes } from "crypto";
+import { promisify } from "util";
+
+// Função para fazer hash de senha
+const scryptAsync = promisify(scrypt);
+async function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configurar autenticação
@@ -464,6 +474,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error filtering events:", error);
       res.status(500).json({ message: "Failed to filter events" });
+    }
+  });
+
+  // Rota temporária para criar o primeiro administrador
+  // Esta rota deve ser removida em produção!
+  app.post("/api/create-first-admin", express.json(), async (req, res) => {
+    // Forçar o conteúdo a ser do tipo application/json
+    res.type('application/json');
+    try {
+      // Uma chave simples para evitar acesso não autorizado
+      const secretKey = "setup-admin-key";
+      if (req.params.key !== secretKey) {
+        return res.status(403).json({ message: "Chave inválida" });
+      }
+      
+      // Verificar se o admin (com username 'admin') já existe
+      let adminUser = await storage.getUserByUsername("admin");
+      
+      if (!adminUser) {
+        // Criar um usuário admin caso não exista
+        adminUser = await storage.createUser({
+          username: "admin",
+          email: "admin@eventopro.com",
+          password: await hashPassword("admin123"),
+          name: "Administrador do Sistema",
+          role: "admin",
+          provider: "local"
+        });
+        
+        // Registrar atividade
+        await storage.createActivity({
+          action: "setup",
+          description: "Administrador inicial configurado pelo sistema",
+          userId: adminUser.id,
+          timestamp: new Date()
+        });
+        
+        return res.json({ 
+          message: "Administrador inicial criado com sucesso",
+          credentials: {
+            username: adminUser.username,
+            password: "admin123"
+          }
+        });
+      }
+      
+      // Se o usuário já existe, verificar se é admin e promover caso não seja
+      if (adminUser.role !== "admin") {
+        const updatedUser = await storage.setUserRole(adminUser.id, "admin");
+        return res.json({ 
+          message: "Usuário 'admin' promovido a administrador",
+          credentials: {
+            username: adminUser.username,
+            password: "Senha definida anteriormente"
+          }
+        });
+      }
+      
+      return res.json({ 
+        message: "Administrador já existe",
+        credentials: {
+          username: adminUser.username,
+          password: "Senha definida anteriormente"
+        }
+      });
+    } catch (error) {
+      console.error("Erro ao configurar admin:", error);
+      return res.status(500).json({ message: "Erro interno ao configurar administrador" });
     }
   });
 
