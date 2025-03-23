@@ -4,7 +4,7 @@ import {
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
-import { User, InsertUser, LoginUserValues, RegisterUserValues } from "@shared/schema";
+import { insertUserSchema, User, InsertUser, LoginUserValues, RegisterUserValues } from "@shared/schema";
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -38,13 +38,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: (user: User) => {
       queryClient.setQueryData(["/api/user"], user);
       toast({
-        title: "Login realizado",
-        description: `Bem-vindo, ${user.username}!`,
+        title: "Login bem-sucedido",
+        description: `Bem-vindo, ${user.name || user.username}!`,
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro no login",
+        title: "Falha no login",
         description: error.message || "Credenciais inválidas",
         variant: "destructive",
       });
@@ -59,13 +59,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: (user: User) => {
       queryClient.setQueryData(["/api/user"], user);
       toast({
-        title: "Registro realizado",
-        description: `Conta criada com sucesso! Bem-vindo, ${user.username}!`,
+        title: "Registro bem-sucedido",
+        description: `Bem-vindo, ${user.name || user.username}!`,
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro no registro",
+        title: "Falha no registro",
         description: error.message || "Não foi possível criar a conta",
         variant: "destructive",
       });
@@ -79,14 +79,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: () => {
       queryClient.setQueryData(["/api/user"], null);
       toast({
-        title: "Sessão encerrada",
-        description: "Logout realizado com sucesso",
+        title: "Logout bem-sucedido",
+        description: "Você foi desconectado com sucesso",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao sair",
-        description: error.message,
+        title: "Falha no logout",
+        description: error.message || "Não foi possível fazer logout",
         variant: "destructive",
       });
     },

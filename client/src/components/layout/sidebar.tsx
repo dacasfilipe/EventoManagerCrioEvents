@@ -87,22 +87,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }: SidebarProps)
 
         {/* User Profile */}
         <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="h-9 w-9 rounded-full bg-primary-100 flex items-center justify-center text-primary-700">
-                JD
-              </div>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium">João Dias</p>
-              <p className="text-xs text-gray-500">Administrador</p>
-            </div>
-            <div className="ml-auto">
-              <button className="text-gray-400 hover:text-gray-500">
-                <i className="ri-logout-box-r-line"></i>
-              </button>
-            </div>
-          </div>
+          <AuthButtons />
         </div>
       </div>
     </aside>
