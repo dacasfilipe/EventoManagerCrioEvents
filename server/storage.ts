@@ -89,7 +89,15 @@ export class MemStorage implements IStorage {
 
   async createEvent(eventData: InsertEvent): Promise<Event> {
     const id = this.eventId++;
-    const event: Event = { ...eventData, id };
+    // Garantir que todos os campos necessários estejam presentes
+    const event: Event = { 
+      ...eventData, 
+      id,
+      status: eventData.status || "pending",
+      capacity: eventData.capacity === undefined ? null : eventData.capacity,
+      createdBy: eventData.createdBy || null,
+      imageUrl: eventData.imageUrl || ""
+    };
     this.events.set(id, event);
     return event;
   }
@@ -124,7 +132,11 @@ export class MemStorage implements IStorage {
 
   async createAttendee(attendeeData: InsertAttendee): Promise<Attendee> {
     const id = this.attendeeId++;
-    const attendee: Attendee = { ...attendeeData, id };
+    const attendee: Attendee = { 
+      ...attendeeData, 
+      id,
+      status: attendeeData.status || "pending"
+    };
     this.attendees.set(id, attendee);
     return attendee;
   }
@@ -162,6 +174,8 @@ export class MemStorage implements IStorage {
     const activity: Activity = { 
       ...activityData, 
       id,
+      eventId: activityData.eventId || null,
+      attendeeId: activityData.attendeeId || null,
       timestamp: activityData.timestamp || new Date() 
     };
     this.activities.set(id, activity);

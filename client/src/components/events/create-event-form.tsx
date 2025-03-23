@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { eventFormSchema, EventFormValues, eventCategories, eventStatuses } from "@shared/schema";
@@ -6,7 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { format } from "date-fns";
-import { Clock } from "lucide-react";
+import { Clock, Upload, Image } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -53,9 +53,53 @@ export default function CreateEventForm({ onSuccess }: CreateEventFormProps) {
     },
   });
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Função para fazer upload da imagem
+  const uploadImage = async (file: File): Promise<string> => {
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Falha ao fazer upload da imagem");
+      }
+
+      const result = await response.json();
+      return result.imageUrl;
+    } catch (error) {
+      console.error("Erro ao fazer upload:", error);
+      throw error;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   async function onSubmit(data: EventFormValues) {
     setIsSubmitting(true);
     try {
+      // Se tiver um arquivo selecionado, faz o upload primeiro
+      if (selectedFile) {
+        try {
+          const imageUrl = await uploadImage(selectedFile);
+          data.imageUrl = imageUrl;
+        } catch (error) {
+          toast({
+            title: "Erro ao fazer upload da imagem",
+            description: "Não foi possível fazer upload da imagem, mas você pode continuar com a criação do evento.",
+            variant: "destructive",
+          });
+        }
+      }
+
       await apiRequest("POST", "/api/events", data);
       toast({
         title: "Evento criado com sucesso",
@@ -68,6 +112,10 @@ export default function CreateEventForm({ onSuccess }: CreateEventFormProps) {
         onSuccess();
       }
       form.reset();
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     } catch (error) {
       console.error("Error creating event:", error);
       toast({
@@ -266,15 +314,52 @@ export default function CreateEventForm({ onSuccess }: CreateEventFormProps) {
           name="imageUrl"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>URL da Imagem</FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder="Cole a URL da imagem do evento" 
-                  {...field} 
-                />
-              </FormControl>
+              <FormLabel>Imagem</FormLabel>
+              <div className="space-y-2">
+                <div className="flex items-center gap-x-2">
+                  <FormControl>
+                    <Input 
+                      placeholder="URL da imagem do evento" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <span className="text-sm text-gray-500">ou</span>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setSelectedFile(file);
+                          // Criar uma URL temporária para preview
+                          const objectUrl = URL.createObjectURL(file);
+                          field.onChange(objectUrl);
+                        }
+                      }}
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      className="relative flex items-center gap-x-2"
+                    >
+                      <Upload size={16} />
+                      Carregar imagem
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex items-center text-xs text-muted-foreground">
+                  <Image size={14} className="mr-1" />
+                  Formatos suportados: JPEG, PNG, GIF, WEBP (máx. 5MB)
+                </div>
+              </div>
+              
               <FormMessage />
-              {field.value && (
+              
+              {(field.value || selectedFile) && (
                 <div className="mt-2">
                   <img 
                     src={field.value} 
