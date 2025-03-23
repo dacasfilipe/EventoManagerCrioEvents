@@ -18,6 +18,8 @@ import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Configurar autenticação
+  setupAuth(app);
   // Configuração de upload com multer
   const uploadDir = path.join(process.cwd(), 'public', 'uploads');
   
@@ -99,24 +101,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/events", async (req, res) => {
+    // Verificar se o usuário está autenticado
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Você precisa estar logado para criar um evento" });
+    }
+
     try {
       const eventData = eventFormSchema.parse(req.body);
       
       // Format date and time appropriately
       const formattedDate = eventData.date;
       
+      // Define o status inicial com base no papel do usuário
+      // Admins podem criar eventos já confirmados, usuários comuns criam eventos pendentes
+      const status = req.user.role === "admin" ? "confirmed" : "pending";
+      
+      // Associar o evento ao usuário que o criou
       const newEvent = await storage.createEvent({
         ...eventData,
-        date: formattedDate
+        date: formattedDate,
+        status,
+        userId: req.user.id
       });
 
       // Create an activity for this new event
       await storage.createActivity({
         eventId: newEvent.id,
-        attendeeId: null,
+        userId: req.user.id,
         action: "created",
         timestamp: new Date(),
-        description: `Evento "${newEvent.name}" foi criado`
+        description: `Evento "${newEvent.name}" foi criado por ${req.user.username}`
       });
 
       res.status(201).json(newEvent);
@@ -127,6 +141,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.put("/api/events/:id", async (req, res) => {
+    // Verificar se o usuário está autenticado
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Você precisa estar logado para atualizar um evento" });
+    }
+
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -138,19 +157,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Event not found" });
       }
 
+      // Verificar permissão: apenas o criador ou um admin pode editar
+      if (event.userId !== req.user.id && req.user.role !== "admin") {
+        return res.status(403).json({ 
+          message: "Você não tem permissão para editar este evento" 
+        });
+      }
+
       const eventData = eventFormSchema.parse(req.body);
       
-      const updatedEvent = await storage.updateEvent(id, {
-        ...eventData
-      });
+      // Se o usuário não for admin, remover campos que ele não deveria alterar
+      let updatedFields: any = { ...eventData };
+      if (req.user.role !== "admin") {
+        // Usuário comum não pode mudar o status do evento
+        delete updatedFields.status;
+      }
+      
+      const updatedEvent = await storage.updateEvent(id, updatedFields);
 
       // Create an activity for this update
       await storage.createActivity({
         eventId: id,
-        attendeeId: null,
+        userId: req.user.id,
         action: "updated",
         timestamp: new Date(),
-        description: `Evento "${updatedEvent?.name}" foi atualizado`
+        description: `Evento "${updatedEvent?.name}" foi atualizado por ${req.user.username}`
       });
 
       res.json(updatedEvent);
@@ -161,6 +192,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.delete("/api/events/:id", async (req, res) => {
+    // Verificar se o usuário está autenticado
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Você precisa estar logado para excluir um evento" });
+    }
+
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -172,15 +208,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Event not found" });
       }
 
+      // Verificar permissão: apenas o criador ou um admin pode excluir
+      if (event.userId !== req.user.id && req.user.role !== "admin") {
+        return res.status(403).json({ 
+          message: "Você não tem permissão para excluir este evento" 
+        });
+      }
+
       await storage.deleteEvent(id);
 
       // Create an activity for this deletion
       await storage.createActivity({
         eventId: id,
-        attendeeId: null,
+        userId: req.user.id,
         action: "deleted",
         timestamp: new Date(),
-        description: `Evento "${event.name}" foi excluído`
+        description: `Evento "${event.name}" foi excluído por ${req.user.username}`
       });
 
       res.status(204).send();
@@ -282,8 +325,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Activities API
+  // Activities API - Somente admins podem acessar todas as atividades
   app.get("/api/activities", async (req, res) => {
+    // Verificar se o usuário está autenticado e é admin
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Não autenticado" });
+    }
+    
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Acesso negado. Somente administradores podem acessar esta funcionalidade." });
+    }
+    
     try {
       const activities = await storage.getActivities();
       res.json(activities);
@@ -308,8 +360,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Stats API
+  // Stats API - requer autenticação de administrador
   app.get("/api/stats", async (req, res) => {
+    // Verificar se o usuário está autenticado e é admin
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Não autenticado" });
+    }
+    
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Acesso negado. Somente administradores podem acessar esta funcionalidade." });
+    }
+    
     try {
       const stats = await storage.getEventStats();
       res.json(stats);
@@ -320,6 +381,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/categories/counts", async (req, res) => {
+    // Verificar se o usuário está autenticado e é admin
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Não autenticado" });
+    }
+    
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Acesso negado. Somente administradores podem acessar esta funcionalidade." });
+    }
+    
     try {
       const categoryCounts = await storage.getCategoryCounts();
       res.json(categoryCounts);
@@ -329,8 +399,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload de imagens
-  app.post("/api/upload", upload.single("image"), (req, res) => {
+  // Upload de imagens - requer autenticação
+  app.post("/api/upload", (req, res, next) => {
+    // Verificar se o usuário está autenticado
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Você precisa estar logado para fazer upload de imagens" });
+    }
+    next();
+  }, upload.single("image"), (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "Nenhum arquivo enviado" });
@@ -338,6 +414,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Construir a URL para a imagem
       const imageUrl = `/uploads/${req.file.filename}`;
+      
+      // Registrar atividade
+      storage.createActivity({
+        action: "upload",
+        description: `${req.user.username} fez upload de uma imagem`,
+        userId: req.user.id,
+        timestamp: new Date()
+      }).catch(console.error);
       
       res.json({ 
         imageUrl,
