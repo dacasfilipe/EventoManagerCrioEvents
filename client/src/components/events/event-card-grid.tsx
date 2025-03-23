@@ -33,7 +33,7 @@ export default function EventCardGrid({ event, attendeeCount = 0 }: EventCardGri
         {event.imageUrl ? (
           <div className="aspect-video overflow-hidden">
             <img 
-              src={event.imageUrl} 
+              src={event.imageUrl.startsWith("http") ? event.imageUrl : window.location.origin + event.imageUrl} 
               alt={event.name} 
               className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
               onError={(e) => {
