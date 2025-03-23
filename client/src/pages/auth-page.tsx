@@ -70,7 +70,12 @@ export default function AuthPage() {
   };
 
   const onRegisterSubmit = (values: RegisterUserValues) => {
-    registerMutation.mutate(values);
+    console.log("Formulário de registro submetido com valores:", values);
+    try {
+      registerMutation.mutate(values);
+    } catch (error) {
+      console.error("Erro ao chamar a mutação de registro:", error);
+    }
   };
 
   if (isLoading) {
