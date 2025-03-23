@@ -1,10 +1,12 @@
-import { pgTable, text, serial, integer, boolean, timestamp, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, pgEnum, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Enum for event status
 export const eventStatusEnum = pgEnum('event_status', ['confirmed', 'pending', 'cancelled', 'planning']);
 export const eventCategoryEnum = pgEnum('event_category', ['conference', 'workshop', 'training', 'webinar', 'meeting', 'other']);
+export const userRoleEnum = pgEnum('user_role', ['admin', 'user']);
+export const authProviderEnum = pgEnum('auth_provider', ['local', 'google', 'facebook']);
 
 // Events table
 export const events = pgTable("events", {
@@ -32,12 +34,31 @@ export const attendees = pgTable("attendees", {
   status: text("status").notNull().default('confirmed'), // confirmed, cancelled, pending
 });
 
+// Users table
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull(),
+  email: text("email").notNull(),
+  password: text("password"), // Hashed password for local auth
+  name: text("name"),
+  role: userRoleEnum("role").notNull().default("user"),
+  provider: authProviderEnum("provider").notNull().default("local"),
+  providerId: text("provider_id"), // ID from social provider
+  avatarUrl: text("avatar_url"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    emailIdx: uniqueIndex("email_idx").on(table.email),
+  };
+});
+
 // Activities table
 export const activities = pgTable("activities", {
   id: serial("id").primaryKey(),
   eventId: integer("event_id"), // References events.id
   attendeeId: integer("attendee_id"), // References attendees.id
-  action: text("action").notNull(), // created, updated, rsvp, cancelled
+  userId: integer("user_id"), // References users.id
+  action: text("action").notNull(), // created, updated, rsvp, cancelled, login
   timestamp: timestamp("timestamp").notNull().defaultNow(),
   description: text("description").notNull(),
 });
@@ -46,6 +67,7 @@ export const activities = pgTable("activities", {
 export const insertEventSchema = createInsertSchema(events).omit({ id: true });
 export const insertAttendeeSchema = createInsertSchema(attendees).omit({ id: true });
 export const insertActivitySchema = createInsertSchema(activities).omit({ id: true });
+export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
 
 // Extended schema for validation
 export const eventFormSchema = insertEventSchema.extend({
@@ -59,6 +81,21 @@ export const attendeeFormSchema = insertAttendeeSchema.extend({
   email: z.string().email()
 });
 
+// User schemas for registration and login
+export const registerUserSchema = insertUserSchema.extend({
+  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  email: z.string().email("Email inválido"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "As senhas não coincidem",
+  path: ["confirmPassword"],
+});
+
+export const loginUserSchema = z.object({
+  username: z.string(),
+  password: z.string(),
+});
+
 // Types
 export type Event = typeof events.$inferSelect;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
@@ -70,6 +107,11 @@ export type AttendeeFormValues = z.infer<typeof attendeeFormSchema>;
 
 export type Activity = typeof activities.$inferSelect;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
+
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type RegisterUserValues = z.infer<typeof registerUserSchema>; 
+export type LoginUserValues = z.infer<typeof loginUserSchema>;
 
 // Categories with display information
 export const eventCategories = [

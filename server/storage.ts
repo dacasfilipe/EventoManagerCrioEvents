@@ -1,7 +1,8 @@
 import { 
   events, type Event, type InsertEvent,
   attendees, type Attendee, type InsertAttendee,
-  activities, type Activity, type InsertActivity
+  activities, type Activity, type InsertActivity,
+  users, type User, type InsertUser
 } from "@shared/schema";
 
 // Interface for all storage operations
