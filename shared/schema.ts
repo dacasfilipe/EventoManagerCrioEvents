@@ -23,6 +23,7 @@ export const events = pgTable("events", {
   createdBy: text("created_by"),
   imageUrl: text("image_url"),
   eventLink: text("event_link"),
+  userId: integer("user_id"), // References users.id
 });
 
 // Attendees table

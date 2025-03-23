@@ -1,5 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
+import { AuthButtons } from "./auth-buttons";
 
 type SidebarProps = {
   isMobileOpen: boolean;
