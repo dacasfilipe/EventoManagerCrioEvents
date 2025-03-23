@@ -50,7 +50,7 @@ export const insertActivitySchema = createInsertSchema(activities).omit({ id: tr
 export const eventFormSchema = insertEventSchema.extend({
   date: z.coerce.date(),
   capacity: z.coerce.number().min(1).optional(),
-  imageUrl: z.string().url().optional(),
+  imageUrl: z.string().optional(),
 });
 
 export const attendeeFormSchema = insertAttendeeSchema.extend({
