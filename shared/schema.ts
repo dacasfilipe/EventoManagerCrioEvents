@@ -19,6 +19,7 @@ export const events = pgTable("events", {
   status: eventStatusEnum("status").notNull().default('pending'),
   capacity: integer("capacity"),
   createdBy: text("created_by"),
+  imageUrl: text("image_url"),
 });
 
 // Attendees table
@@ -49,6 +50,7 @@ export const insertActivitySchema = createInsertSchema(activities).omit({ id: tr
 export const eventFormSchema = insertEventSchema.extend({
   date: z.coerce.date(),
   capacity: z.coerce.number().min(1).optional(),
+  imageUrl: z.string().url().optional(),
 });
 
 export const attendeeFormSchema = insertAttendeeSchema.extend({

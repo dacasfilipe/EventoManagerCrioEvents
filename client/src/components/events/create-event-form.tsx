@@ -6,7 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Clock } from "lucide-react";
+import { Clock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,12 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { DatePicker } from "@/components/ui/date-picker";
 import { cn } from "@/lib/utils";
 
 interface CreateEventFormProps {
@@ -54,6 +49,7 @@ export default function CreateEventForm({ onSuccess }: CreateEventFormProps) {
       category: "conference",
       status: "pending",
       capacity: 50,
+      imageUrl: "",
     },
   });
 
@@ -283,6 +279,35 @@ export default function CreateEventForm({ onSuccess }: CreateEventFormProps) {
                 </SelectContent>
               </Select>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="imageUrl"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>URL da Imagem</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="Cole a URL da imagem do evento" 
+                  {...field} 
+                />
+              </FormControl>
+              <FormMessage />
+              {field.value && (
+                <div className="mt-2">
+                  <img 
+                    src={field.value} 
+                    alt="Preview da imagem" 
+                    className="h-40 object-cover rounded-md border border-gray-200" 
+                    onError={(e) => {
+                      e.currentTarget.src = "https://via.placeholder.com/300x150?text=Imagem+Indisponível";
+                    }}
+                  />
+                </div>
+              )}
             </FormItem>
           )}
         />
