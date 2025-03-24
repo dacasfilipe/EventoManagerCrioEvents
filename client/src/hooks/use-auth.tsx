@@ -8,6 +8,24 @@ import { insertUserSchema, User, InsertUser, LoginUserValues, RegisterUserValues
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+type ProfileUpdateData = {
+  name?: string;
+  email?: string;
+  avatarUrl?: string;
+};
+
+type PasswordChangeData = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
+type NotificationPreferences = {
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  weeklyDigest: boolean;
+};
+
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
@@ -15,6 +33,9 @@ type AuthContextType = {
   loginMutation: UseMutationResult<User, Error, LoginUserValues>;
   logoutMutation: UseMutationResult<Response, Error, void>;
   registerMutation: UseMutationResult<User, Error, RegisterUserValues>;
+  updateProfileMutation: UseMutationResult<User, Error, ProfileUpdateData>;
+  changePasswordMutation: UseMutationResult<{message: string}, Error, PasswordChangeData>;
+  updateNotificationsMutation: UseMutationResult<{message: string, preferences: NotificationPreferences}, Error, NotificationPreferences>;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);

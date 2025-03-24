@@ -438,6 +438,142 @@ export function setupAuth(app: Express) {
   }
   */
 
+  // Rota para atualizar o perfil do usuário
+  app.patch("/api/users/:id", async (req, res, next) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Não autenticado" });
+    }
+    
+    const userId = parseInt(req.params.id);
+    
+    // Verificar se o usuário está atualizando seu próprio perfil ou é um admin
+    if (req.user.id !== userId && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Acesso negado. Você só pode atualizar seu próprio perfil." });
+    }
+    
+    try {
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+      
+      // Campos permitidos para atualização
+      const { name, email, avatarUrl } = req.body;
+      const updateData: any = {};
+      
+      if (name !== undefined) updateData.name = name;
+      if (email !== undefined) {
+        // Verificar se o email está sendo usado por outro usuário
+        if (email !== user.email) {
+          const existingUser = await storage.getUserByEmail(email);
+          if (existingUser && existingUser.id !== userId) {
+            return res.status(400).json({ message: "Este email já está em uso" });
+          }
+        }
+        updateData.email = email;
+      }
+      if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
+      
+      // Atualizar usuário
+      const updatedUser = await storage.updateUser(userId, updateData);
+      
+      // Registrar atividade
+      await storage.createActivity({
+        action: "profile_update",
+        description: `Perfil de ${user.username} atualizado`,
+        userId: req.user.id,
+        timestamp: new Date()
+      });
+      
+      return res.json(updatedUser);
+    } catch (error) {
+      return next(error);
+    }
+  });
+  
+  // Rota para alterar senha
+  app.post("/api/users/:id/change-password", async (req, res, next) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Não autenticado" });
+    }
+    
+    const userId = parseInt(req.params.id);
+    
+    // Usuário só pode alterar sua própria senha
+    if (req.user.id !== userId) {
+      return res.status(403).json({ message: "Acesso negado. Você só pode alterar sua própria senha." });
+    }
+    
+    try {
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+      
+      // Verificar se é um usuário com provider local
+      if (user.provider !== "local") {
+        return res.status(400).json({ 
+          message: `Não é possível alterar a senha para contas de ${user.provider}. Use o provedor de autenticação original.` 
+        });
+      }
+      
+      const { currentPassword, newPassword } = req.body;
+      
+      // Verificar senha atual
+      if (!user.password || !(await comparePasswords(currentPassword, user.password))) {
+        return res.status(401).json({ message: "Senha atual incorreta" });
+      }
+      
+      // Atualizar senha
+      const hashedPassword = await hashPassword(newPassword);
+      await storage.updateUser(userId, { password: hashedPassword });
+      
+      // Registrar atividade
+      await storage.createActivity({
+        action: "password_change",
+        description: `${user.username} alterou sua senha`,
+        userId: userId,
+        timestamp: new Date()
+      });
+      
+      return res.json({ message: "Senha alterada com sucesso" });
+    } catch (error) {
+      return next(error);
+    }
+  });
+  
+  // Rota para atualizar preferências de notificação
+  app.patch("/api/users/:id/notifications", async (req, res, next) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Não autenticado" });
+    }
+    
+    const userId = parseInt(req.params.id);
+    
+    // Usuário só pode atualizar suas próprias preferências
+    if (req.user.id !== userId) {
+      return res.status(403).json({ message: "Acesso negado. Você só pode atualizar suas próprias preferências." });
+    }
+    
+    try {
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+      
+      // Atualizar preferências
+      // Por enquanto, estamos apenas simulando esta funcionalidade
+      // Em um sistema real, você salvaria essas preferências no banco de dados
+      
+      return res.json({ 
+        message: "Preferências de notificação atualizadas com sucesso",
+        preferences: req.body
+      });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
   // Rota para admin tornar outro usuário admin
   app.post("/api/user/:id/make-admin", async (req, res, next) => {
     if (!req.isAuthenticated()) {
