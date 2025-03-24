@@ -245,6 +245,16 @@ export default function Calendar({ events }: CalendarProps) {
                     </div>
                   </div>
                   
+                  {event.imageUrl && (
+                    <div className="mb-3">
+                      <img 
+                        src={event.imageUrl} 
+                        alt={event.name}
+                        className="w-full h-32 object-cover rounded-md"
+                      />
+                    </div>
+                  )}
+                  
                   <p className="text-sm text-gray-600 mb-2 line-clamp-2">{event.description}</p>
                   
                   <div className="flex items-center text-sm text-gray-500 mb-1">
