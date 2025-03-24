@@ -293,30 +293,73 @@ export function setupAuth(app: Express) {
     }
   });
 
+  // Endpoint para verificar configuração OAuth
+  app.get("/auth/config", (req, res) => {
+    const googleConfig = {
+      clientId: process.env.GOOGLE_CLIENT_ID ? `${process.env.GOOGLE_CLIENT_ID.substring(0, 10)}...` : "não definido",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ? "configurado" : "não definido",
+      callbackUrl: process.env.REPLIT_DEV_DOMAIN
+        ? `https://${process.env.REPLIT_DEV_DOMAIN}/auth/google/callback`
+        : "/auth/google/callback",
+      replitDomain: process.env.REPLIT_DEV_DOMAIN || "não disponível"
+    };
+    
+    res.json({
+      googleConfig,
+      env: {
+        nodeEnv: process.env.NODE_ENV || "não definido",
+        port: process.env.PORT || 5000
+      }
+    });
+  });
+
   // Google Auth rotas
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    app.get("/auth/google", 
-      passport.authenticate("google", { scope: ["profile", "email"] })
-    );
+    app.get("/auth/google", (req, res, next) => {
+      console.log("Iniciando autenticação Google...");
+      passport.authenticate("google", { 
+        scope: ["profile", "email"],
+        prompt: "select_account"
+      })(req, res, next);
+    });
 
-    app.get("/auth/google/callback", 
+    app.get("/auth/google/callback", (req, res, next) => {
+      console.log("Recebendo callback do Google OAuth...");
+      
       passport.authenticate("google", { 
         failureRedirect: "/auth"
-      }), (req, res) => {
-        // Registrar atividade de login
-        if (req.user) {
-          storage.createActivity({
-            action: "login",
-            description: `Usuário logado via Google: ${req.user.username}`,
-            userId: req.user.id,
-            timestamp: new Date()
-          }).catch(console.error);
+      }, (err, user, info) => {
+        console.log("Resultado autenticação:", { erro: !!err, usuário: !!user });
+        
+        if (err) {
+          console.error("Erro na autenticação Google:", err);
+          return res.redirect("/auth?error=auth_error");
         }
         
-        // Redirecionar para a página inicial após login
-        res.redirect("/");
-      }
-    );
+        if (!user) {
+          console.error("Autenticação Google falhou:", info);
+          return res.redirect("/auth?error=auth_failed");
+        }
+        
+        req.login(user, (loginErr) => {
+          if (loginErr) {
+            console.error("Erro no login após autenticação Google:", loginErr);
+            return res.redirect("/auth?error=login_error");
+          }
+          
+          // Registrar atividade de login
+          storage.createActivity({
+            action: "login",
+            description: `Usuário logado via Google: ${user.username}`,
+            userId: user.id,
+            timestamp: new Date()
+          }).catch(console.error);
+          
+          // Redirecionar para a página inicial após login
+          return res.redirect("/");
+        });
+      })(req, res, next);
+    });
   }
 
   /* Facebook Auth routes - comentadas por enquanto
