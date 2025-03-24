@@ -71,12 +71,19 @@ export function setupAuth(app: Express) {
 
   // Estratégia Google
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    // Usar o domínio de desenvolvimento do Replit se estiver em ambiente Replit
+    const callbackURL = process.env.REPLIT_DEV_DOMAIN
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}/auth/google/callback`
+      : "/auth/google/callback";
+      
+    console.log(`Google OAuth callback URL: ${callbackURL}`);
+    
     passport.use(
       new GoogleStrategy(
         {
           clientID: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-          callbackURL: "/auth/google/callback",
+          callbackURL,
           proxy: true
         },
         async (accessToken, refreshToken, profile, done) => {
