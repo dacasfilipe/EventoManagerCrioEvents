@@ -111,6 +111,16 @@ export default function EventDetails() {
                   </div>
                 </CardHeader>
                 <CardContent>
+                  {event.imageUrl && (
+                    <div className="mb-6">
+                      <img 
+                        src={event.imageUrl} 
+                        alt={event.name} 
+                        className="w-full h-48 object-cover rounded-md" 
+                      />
+                    </div>
+                  )}
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div className="flex items-center">
