@@ -10,6 +10,7 @@ import Dashboard from "@/pages/dashboard";
 import Events from "@/pages/events";
 import Calendar from "@/pages/calendar";
 import EventDetails from "@/pages/event-details";
+import EditEventPage from "@/pages/edit-event-page";
 import Attendees from "@/pages/attendees";
 import AuthPage from "@/pages/auth-page";
 
@@ -28,6 +29,10 @@ function Router() {
       
       <ProtectedRoute path="/events/:id">
         <EventDetails />
+      </ProtectedRoute>
+      
+      <ProtectedRoute path="/events/:id/edit">
+        <EditEventPage />
       </ProtectedRoute>
       
       <ProtectedRoute path="/calendar">

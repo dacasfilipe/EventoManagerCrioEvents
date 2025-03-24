@@ -201,6 +201,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/events/:id", async (req, res) => {
+    // Verificar se o usuário está autenticado
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Você precisa estar logado para atualizar um evento" });
+    }
+
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
+
+      const event = await storage.getEvent(id);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+
+      // Verificar permissão: apenas o criador ou um admin pode editar
+      if (event.userId !== req.user.id && req.user.role !== "admin") {
+        return res.status(403).json({ 
+          message: "Você não tem permissão para editar este evento" 
+        });
+      }
+
+      // A diferença do PATCH é que validamos apenas os campos enviados
+      const eventData = req.body;
+      
+      // Se o usuário não for admin, remover campos que ele não deveria alterar
+      let updatedFields: any = { ...eventData };
+      if (req.user.role !== "admin") {
+        // Usuário comum não pode mudar o status do evento
+        delete updatedFields.status;
+      }
+      
+      const updatedEvent = await storage.updateEvent(id, updatedFields);
+
+      // Create an activity for this update
+      await storage.createActivity({
+        eventId: id,
+        userId: req.user.id,
+        action: "updated",
+        timestamp: new Date(),
+        description: `Evento "${updatedEvent?.name}" foi atualizado por ${req.user.username}`
+      });
+
+      res.json(updatedEvent);
+    } catch (error) {
+      console.error("Error updating event:", error);
+      if (error instanceof ZodError) {
+        return handleZodError(error, res);
+      }
+      return res.status(500).json({ message: "Failed to update event" });
+    }
+  });
+
   app.delete("/api/events/:id", async (req, res) => {
     // Verificar se o usuário está autenticado
     if (!req.isAuthenticated()) {
