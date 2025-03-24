@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -87,9 +87,20 @@ export default function Calendar({ events }: CalendarProps) {
 
   const { days, totalEvents } = createCalendarData();
   
-  const handleDateClick = (date: Date) => {
+  const [selectedEvents, setSelectedEvents] = useState<Event[]>([]);
+  const [showEventsModal, setShowEventsModal] = useState(false);
+
+  const handleDateClick = (date: Date, events: Event[]) => {
     setSelectedDate(date);
-    setShowCreateModal(true);
+    
+    if (events.length > 0) {
+      // Se há eventos neste dia, mostrar o modal com os eventos
+      setSelectedEvents(events);
+      setShowEventsModal(true);
+    } else {
+      // Se não há eventos, mostrar o modal para criar um novo
+      setShowCreateModal(true);
+    }
   };
 
   // Weekday header labels
@@ -148,7 +159,7 @@ export default function Calendar({ events }: CalendarProps) {
                 day.isToday ? "bg-primary-50 rounded-md" : "",
                 day.hasEvent ? "font-medium" : ""
               )}
-              onClick={() => day.day && handleDateClick(day.date!)}
+              onClick={() => day.day && handleDateClick(day.date!, day.events || [])}
             >
               {day.day && (
                 <>
@@ -189,6 +200,7 @@ export default function Calendar({ events }: CalendarProps) {
         </div>
       </div>
 
+      {/* Modal para criar um novo evento */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -198,6 +210,80 @@ export default function Calendar({ events }: CalendarProps) {
             </DialogDescription>
           </DialogHeader>
           <CreateEventForm onSuccess={() => setShowCreateModal(false)} />
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal para exibir eventos existentes */}
+      <Dialog open={showEventsModal} onOpenChange={setShowEventsModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Eventos do Dia</DialogTitle>
+            <DialogDescription>
+              Eventos para {selectedDate ? format(selectedDate, "dd 'de' MMMM, yyyy", { locale: ptBR }) : ""}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 mt-4">
+            {selectedEvents.length > 0 ? (
+              selectedEvents.map((event) => (
+                <div 
+                  key={event.id} 
+                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium text-lg">{event.name}</h3>
+                    <div className={cn(
+                      "px-2 py-1 rounded-full text-xs font-medium",
+                      event.status === 'confirmed' ? "bg-green-100 text-green-800" :
+                      event.status === 'pending' ? "bg-yellow-100 text-yellow-800" : 
+                      event.status === 'cancelled' ? "bg-red-100 text-red-800" : 
+                      "bg-blue-100 text-blue-800"
+                    )}>
+                      {event.status === 'confirmed' ? "Confirmado" :
+                       event.status === 'pending' ? "Pendente" :
+                       event.status === 'cancelled' ? "Cancelado" : "Planejamento"}
+                    </div>
+                  </div>
+                  
+                  <p className="text-sm text-gray-600 mb-2 line-clamp-2">{event.description}</p>
+                  
+                  <div className="flex items-center text-sm text-gray-500 mb-1">
+                    <Clock className="h-4 w-4 mr-1" />
+                    <span>{event.startTime} - {event.endTime}</span>
+                  </div>
+                  
+                  <div className="flex items-center text-sm text-gray-500">
+                    <MapPin className="h-4 w-4 mr-1" />
+                    <span>{event.location}</span>
+                  </div>
+                  
+                  <div className="mt-3 flex justify-end">
+                    <Button asChild variant="outline" size="sm" className="mr-2">
+                      <a href={`/events/${event.id}`}>Ver Detalhes</a>
+                    </Button>
+                    <Button asChild variant="default" size="sm">
+                      <a href={`/events/${event.id}/edit`}>Editar</a>
+                    </Button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-gray-500">Nenhum evento encontrado nesta data.</p>
+            )}
+          </div>
+          
+          <div className="mt-4 border-t pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowEventsModal(false);
+                setShowCreateModal(true);
+              }}
+              className="w-full"
+            >
+              Adicionar Novo Evento
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
