@@ -312,6 +312,67 @@ export function setupAuth(app: Express) {
       }
     });
   });
+  
+  // Rota de desenvolvimento para login direto (use apenas em ambiente de desenvolvimento)
+  app.get("/auth/dev/login", async (req, res) => {
+    try {
+      if (process.env.NODE_ENV === "production") {
+        return res.status(404).send("Not Found");
+      }
+      
+      const email = req.query.email as string || "dev@example.com";
+      const name = req.query.name as string || "Desenvolvedor";
+      const username = email.split("@")[0].toLowerCase();
+      
+      // Verificar se usuário já existe
+      let user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        // Criar usuário de desenvolvimento
+        user = await storage.createUser({
+          username,
+          email,
+          name,
+          provider: "dev",
+          providerId: "dev-account",
+          role: req.query.admin === "true" ? "admin" : "user"
+        });
+        
+        // Registrar atividade
+        await storage.createActivity({
+          action: "register",
+          description: `Usuário de desenvolvimento criado: ${username}`,
+          userId: user.id,
+          timestamp: new Date()
+        });
+        
+        console.log(`Usuário de desenvolvimento criado: ${username} (${email})`);
+      }
+      
+      // Login automático
+      req.login(user, (err) => {
+        if (err) {
+          console.error("Erro no login dev:", err);
+          return res.redirect("/auth?error=dev_login_error");
+        }
+        
+        console.log(`Login de desenvolvimento bem-sucedido: ${username} (${user.role})`);
+        
+        // Registrar atividade
+        storage.createActivity({
+          action: "login",
+          description: `Login de desenvolvimento: ${username}`,
+          userId: user.id,
+          timestamp: new Date()
+        }).catch(console.error);
+        
+        return res.redirect("/");
+      });
+    } catch (error) {
+      console.error("Erro no login de desenvolvimento:", error);
+      return res.redirect("/auth?error=dev_error");
+    }
+  });
 
   // Google Auth rotas
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
