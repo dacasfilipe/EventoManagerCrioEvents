@@ -6,7 +6,7 @@ import { z } from "zod";
 export const eventStatusEnum = pgEnum('event_status', ['confirmed', 'pending', 'cancelled', 'planning']);
 export const eventCategoryEnum = pgEnum('event_category', ['conference', 'workshop', 'training', 'webinar', 'meeting', 'other']);
 export const userRoleEnum = pgEnum('user_role', ['admin', 'user']);
-export const authProviderEnum = pgEnum('auth_provider', ['local', 'google', 'facebook']);
+export const authProviderEnum = pgEnum('auth_provider', ['local', 'google', 'facebook', 'dev']);
 
 // Events table
 export const events = pgTable("events", {
