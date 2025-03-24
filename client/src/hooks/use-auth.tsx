@@ -13,7 +13,7 @@ type AuthContextType = {
   isLoading: boolean;
   error: Error | null;
   loginMutation: UseMutationResult<User, Error, LoginUserValues>;
-  logoutMutation: UseMutationResult<void, Error, void>;
+  logoutMutation: UseMutationResult<Response, Error, void>;
   registerMutation: UseMutationResult<User, Error, RegisterUserValues>;
 };
 
@@ -100,8 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Limpar outras caches relacionadas ao usuário
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       
-      // Redirecionar para a página de login
-      window.location.href = "/auth";
+      // A navegação será feita pelo componente que chama esta mutação
       
       toast({
         title: "Logout bem-sucedido",
@@ -118,7 +117,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Forçar limpeza em caso de erro
       queryClient.setQueryData(["/api/user"], null);
-      window.location.href = "/auth";
+      
+      // A navegação será feita pelo componente que chama esta mutação
     },
   });
 
