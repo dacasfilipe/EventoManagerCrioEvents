@@ -199,6 +199,7 @@ export default function AuthPage() {
                         </svg>
                         Google
                       </a>
+                      <DevLoginButtons />
                     </div>
                   </form>
                 </Form>
@@ -332,6 +333,7 @@ export default function AuthPage() {
                         </svg>
                         Google
                       </a>
+                      <DevLoginButtons />
                     </div>
                   </form>
                 </Form>
@@ -370,128 +372,53 @@ export default function AuthPage() {
             </div>
             <h1 className="text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">EventoPro</h1>
             <div className="h-1 w-32 bg-gradient-to-r from-white/80 to-white/20 mx-auto rounded-full mb-4"></div>
-            <p className="text-xl leading-relaxed mb-8 text-white/90 backdrop-blur-sm py-2 px-4 bg-indigo-700/40 rounded-lg shadow-inner">
-              A plataforma completa para gerenciar seus eventos de forma fácil e profissional.
+            <p className="text-xl leading-relaxed mb-8 text-white/90 backdrop-blur-sm py-1 px-4 rounded-lg">
+              Gerencie seus eventos com eficiência e facilidade
             </p>
           </div>
           
-          <h2 className="text-2xl font-semibold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80 text-center">Principais Funcionalidades</h2>
-          
-          <div className="grid grid-cols-1 gap-6">
-            <div className="bg-gradient-to-br from-indigo-600/20 to-purple-800/10 rounded-lg p-6 backdrop-blur-sm shadow-lg border border-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-xl">
-              <div className="w-10 h-10 bg-blue-500/30 rounded-full mb-4 flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          {/* Features */}
+          <div className="space-y-6">
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0 p-2 bg-white/10 rounded-lg backdrop-blur-md">
+                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z" stroke="white" strokeWidth="2"/>
+                  <path d="M16 2V6" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M8 2V6" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M3 10H21" stroke="white" strokeWidth="2"/>
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold mb-3 flex items-center bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
-                Gestão de Eventos
-              </h3>
-              <ul className="space-y-3 text-white/80">
-                <li className="flex items-start">
-                  <div className="w-5 h-5 rounded-full bg-primary-500/20 mr-3 flex items-center justify-center mt-0.5">
-                    <svg className="w-3 h-3 text-primary-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                  </div>
-                  <span>Crie eventos com imagens e informações detalhadas</span>
-                </li>
-                <li className="flex items-start">
-                  <div className="w-5 h-5 rounded-full bg-primary-500/20 mr-3 flex items-center justify-center mt-0.5">
-                    <svg className="w-3 h-3 text-primary-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                  </div>
-                  <span>Visualize programação em calendário interativo</span>
-                </li>
-              </ul>
+              <div>
+                <h3 className="text-lg font-semibold mb-1">Organize eventos</h3>
+                <p className="text-sm text-white/80">Crie e planeje eventos com facilidade, gerenciando datas, participantes e recursos</p>
+              </div>
             </div>
             
-            <div className="bg-gradient-to-br from-indigo-600/20 to-purple-800/10 rounded-lg p-6 backdrop-blur-sm shadow-lg border border-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-xl">
-              <div className="w-10 h-10 bg-blue-500/30 rounded-full mb-4 flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0 p-2 bg-white/10 rounded-lg backdrop-blur-md">
+                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9 11L12 14L22 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M21 12V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3H16" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold mb-3 flex items-center bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
-                Gerenciamento de Participantes
-              </h3>
-              <ul className="space-y-3 text-white/80">
-                <li className="flex items-start">
-                  <div className="w-5 h-5 rounded-full bg-primary-500/20 mr-3 flex items-center justify-center mt-0.5">
-                    <svg className="w-3 h-3 text-primary-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                  </div>
-                  <span>Controle de presença e confirmações</span>
-                </li>
-                <li className="flex items-start">
-                  <div className="w-5 h-5 rounded-full bg-primary-500/20 mr-3 flex items-center justify-center mt-0.5">
-                    <svg className="w-3 h-3 text-primary-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                  </div>
-                  <span>Gestão de contatos e comunicações</span>
-                </li>
-              </ul>
+              <div>
+                <h3 className="text-lg font-semibold mb-1">Gerencie inscrições</h3>
+                <p className="text-sm text-white/80">Acompanhe participantes e confirmações de presença em tempo real</p>
+              </div>
             </div>
             
-            <div className="bg-gradient-to-br from-indigo-600/20 to-purple-800/10 rounded-lg p-6 backdrop-blur-sm shadow-lg border border-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-xl">
-              <div className="w-10 h-10 bg-blue-500/30 rounded-full mb-4 flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0 p-2 bg-white/10 rounded-lg backdrop-blur-md">
+                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 20V10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M18 20V4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M6 20V16" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold mb-3 flex items-center bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
-                Análise e Relatórios
-              </h3>
-              <ul className="space-y-3 text-white/80">
-                <li className="flex items-start">
-                  <div className="w-5 h-5 rounded-full bg-primary-500/20 mr-3 flex items-center justify-center mt-0.5">
-                    <svg className="w-3 h-3 text-primary-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                  </div>
-                  <span>Dashboard com estatísticas e métricas</span>
-                </li>
-                <li className="flex items-start">
-                  <div className="w-5 h-5 rounded-full bg-primary-500/20 mr-3 flex items-center justify-center mt-0.5">
-                    <svg className="w-3 h-3 text-primary-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                  </div>
-                  <span>Acompanhamento de atividades em tempo real</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-gradient-to-br from-indigo-600/20 to-purple-800/10 rounded-lg p-6 backdrop-blur-sm shadow-lg border border-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-xl">
-              <div className="w-10 h-10 bg-blue-500/30 rounded-full mb-4 flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                </svg>
+              <div>
+                <h3 className="text-lg font-semibold mb-1">Visualize estatísticas</h3>
+                <p className="text-sm text-white/80">Veja relatórios e análises detalhadas para otimizar seus próximos eventos</p>
               </div>
-              <h3 className="text-lg font-semibold mb-3 flex items-center bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
-                Segurança e Acesso
-              </h3>
-              <ul className="space-y-3 text-white/80">
-                <li className="flex items-start">
-                  <div className="w-5 h-5 rounded-full bg-primary-500/20 mr-3 flex items-center justify-center mt-0.5">
-                    <svg className="w-3 h-3 text-primary-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                  </div>
-                  <span>Autenticação segura (Google, usuário/senha)</span>
-                </li>
-                <li className="flex items-start">
-                  <div className="w-5 h-5 rounded-full bg-primary-500/20 mr-3 flex items-center justify-center mt-0.5">
-                    <svg className="w-3 h-3 text-primary-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                  </div>
-                  <span>Sistema de permissões para admin e usuários</span>
-                </li>
-              </ul>
             </div>
           </div>
         </div>
