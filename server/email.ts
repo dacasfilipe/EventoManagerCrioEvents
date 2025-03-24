@@ -49,22 +49,22 @@ export async function notifyAdminAboutNewEvent(event: Event, creator: User, admi
   const mailOptions: nodemailer.SendMailOptions = {
     from: process.env.EMAIL_FROM || 'noreply@eventopro.com',
     to: adminEmail,
-    subject: `[EventoPro] Novo evento criado: ${event.title}`,
+    subject: `[EventoPro] Novo evento criado: ${event.name}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #4f46e5;">Novo Evento Criado</h2>
         <p>Um novo evento foi criado e precisa de aprovação.</p>
         
         <div style="background-color: #f9fafb; padding: 20px; border-radius: 5px; margin: 20px 0;">
-          <h3 style="margin-top: 0;">${event.title}</h3>
+          <h3 style="margin-top: 0;">${event.name}</h3>
           <p><strong>Descrição:</strong> ${event.description}</p>
-          <p><strong>Data:</strong> ${new Date(event.startDate).toLocaleDateString('pt-BR')}</p>
-          <p><strong>Local:</strong> ${event.location}</p>
+          <p><strong>Data:</strong> ${new Date(event.date).toLocaleDateString()}</p>
+          <p><strong>Local:</strong> ${event.location || 'Não informado'}</p>
           <p><strong>Categoria:</strong> ${event.category}</p>
           <p><strong>Status:</strong> ${event.status}</p>
         </div>
         
-        <p><strong>Criado por:</strong> ${creator.name} (${creator.email})</p>
+        <p><strong>Criado por:</strong> ${creator.name || creator.username} (${creator.email})</p>
         
         <p>Acesse o painel administrativo para aprovar ou rejeitar este evento.</p>
         

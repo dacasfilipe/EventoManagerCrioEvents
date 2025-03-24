@@ -143,6 +143,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timestamp: new Date(),
         description: `Evento "${newEvent.name}" foi criado por ${req.user.username}`
       });
+      
+      // Se o evento foi criado por um usuário comum (não admin) e precisa de aprovação
+      // enviar notificação por email para o administrador
+      if (req.user.role !== "admin" && status === "pending") {
+        try {
+          // Buscar o email do administrador
+          const adminEmail = await getAdminEmail(storage);
+          if (adminEmail) {
+            // Enviar email de notificação
+            await notifyAdminAboutNewEvent(newEvent, req.user, adminEmail);
+          }
+        } catch (emailError) {
+          console.error("Erro ao enviar email de notificação:", emailError);
+          // Não bloquear a criação do evento se o email falhar
+        }
+      }
 
       res.status(201).json(newEvent);
     } catch (error) {
@@ -494,16 +510,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload de imagens - requer autenticação
-  app.post("/api/upload", (req, res, next) => {
+  app.post("/api/upload", (req: Request, res: Response, next: NextFunction) => {
     // Verificar se o usuário está autenticado
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Você precisa estar logado para fazer upload de imagens" });
     }
     next();
-  }, upload.single("image"), (req, res) => {
+  }, upload.single("image"), (req: Request, res: Response) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "Nenhum arquivo enviado" });
+      }
+
+      // Verificar se o usuário está autenticado
+      if (!req.isAuthenticated() || !req.user) {
+        return res.status(401).json({ message: "Você precisa estar logado para fazer upload de imagens" });
       }
 
       // Construir a URL para a imagem
