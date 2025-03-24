@@ -143,6 +143,73 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  // Mutação para atualizar o perfil do usuário
+  const updateProfileMutation = useMutation({
+    mutationFn: async (profileData: ProfileUpdateData) => {
+      if (!user) throw new Error("Usuário não autenticado");
+      const res = await apiRequest("PATCH", `/api/users/${user.id}`, profileData);
+      return await res.json();
+    },
+    onSuccess: (updatedUser: User) => {
+      queryClient.setQueryData(["/api/user"], updatedUser);
+      toast({
+        title: "Perfil atualizado",
+        description: "Suas informações foram atualizadas com sucesso",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Falha na atualização",
+        description: error.message || "Não foi possível atualizar o perfil",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutação para alterar a senha
+  const changePasswordMutation = useMutation({
+    mutationFn: async (passwordData: PasswordChangeData) => {
+      if (!user) throw new Error("Usuário não autenticado");
+      const res = await apiRequest("POST", `/api/users/${user.id}/change-password`, passwordData);
+      return await res.json();
+    },
+    onSuccess: (data: {message: string}) => {
+      toast({
+        title: "Senha alterada",
+        description: data.message || "Sua senha foi alterada com sucesso",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Falha na alteração de senha",
+        description: error.message || "Não foi possível alterar sua senha",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutação para atualizar preferências de notificação
+  const updateNotificationsMutation = useMutation({
+    mutationFn: async (notificationData: NotificationPreferences) => {
+      if (!user) throw new Error("Usuário não autenticado");
+      const res = await apiRequest("PATCH", `/api/users/${user.id}/notifications`, notificationData);
+      return await res.json();
+    },
+    onSuccess: (data: {message: string, preferences: NotificationPreferences}) => {
+      toast({
+        title: "Preferências atualizadas",
+        description: data.message || "Suas preferências de notificação foram atualizadas",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Falha na atualização",
+        description: error.message || "Não foi possível atualizar suas preferências",
+        variant: "destructive",
+      });
+    },
+  });
+
   return (
     <AuthContext.Provider
       value={{
@@ -152,6 +219,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loginMutation,
         logoutMutation,
         registerMutation,
+        updateProfileMutation,
+        changePasswordMutation,
+        updateNotificationsMutation,
       }}
     >
       {children}

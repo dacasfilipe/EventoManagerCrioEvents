@@ -91,74 +91,12 @@ export default function SettingsPage() {
     },
   });
 
-  // Mutação para atualizar o perfil do usuário
-  const updateProfileMutation = useMutation({
-    mutationFn: async (data: ProfileFormValues) => {
-      const res = await apiRequest("PATCH", `/api/users/${user?.id}`, data);
-      return await res.json();
-    },
-    onSuccess: (updatedUser: User) => {
-      queryClient.setQueryData(["/api/user"], updatedUser);
-      toast({
-        title: "Perfil atualizado",
-        description: "Suas informações de perfil foram atualizadas com sucesso.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Erro ao atualizar perfil",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Mutação para atualizar a senha
-  const updatePasswordMutation = useMutation({
-    mutationFn: async (data: SecurityFormValues) => {
-      const res = await apiRequest("POST", `/api/users/${user?.id}/change-password`, data);
-      return await res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Senha atualizada",
-        description: "Sua senha foi atualizada com sucesso.",
-      });
-      securityForm.reset({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Erro ao atualizar senha",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Mutação para atualizar as notificações
-  const updateNotificationsMutation = useMutation({
-    mutationFn: async (data: NotificationsFormValues) => {
-      const res = await apiRequest("PATCH", `/api/users/${user?.id}/notifications`, data);
-      return await res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Preferências atualizadas",
-        description: "Suas preferências de notificação foram atualizadas com sucesso.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Erro ao atualizar preferências",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  // Obtendo as mutações do hook useAuth
+  const {
+    updateProfileMutation,
+    changePasswordMutation: updatePasswordMutation,
+    updateNotificationsMutation
+  } = useAuth();
 
   // Lidar com o envio do formulário de perfil
   function onProfileSubmit(data: ProfileFormValues) {
