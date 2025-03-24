@@ -12,6 +12,7 @@ import Calendar from "@/pages/calendar";
 import EventDetails from "@/pages/event-details";
 import EditEventPage from "@/pages/edit-event-page";
 import Attendees from "@/pages/attendees";
+import Reports from "@/pages/reports";
 import AuthPage from "@/pages/auth-page";
 
 function Router() {
@@ -41,6 +42,10 @@ function Router() {
       
       <ProtectedRoute path="/attendees">
         <Attendees />
+      </ProtectedRoute>
+      
+      <ProtectedRoute path="/reports" adminOnly>
+        <Reports />
       </ProtectedRoute>
 
       {/* Rota pública para autenticação */}

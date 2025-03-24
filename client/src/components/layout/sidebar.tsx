@@ -10,12 +10,14 @@ type SidebarProps = {
 
 export default function Sidebar({ isMobileOpen, setIsMobileOpen }: SidebarProps) {
   const [location] = useLocation();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
 
   const navigationItems = [
     {
       title: "Principal",
       items: [
-        { name: "Dashboard", href: "/", icon: "ri-dashboard-line" },
+        ...(isAdmin ? [{ name: "Dashboard", href: "/", icon: "ri-dashboard-line" }] : []),
         { name: "Calendário", href: "/calendar", icon: "ri-calendar-line" },
         { name: "Participantes", href: "/attendees", icon: "ri-group-line" },
       ],
@@ -24,7 +26,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }: SidebarProps)
       title: "Gestão",
       items: [
         { name: "Eventos", href: "/events", icon: "ri-folder-line" },
-        { name: "Relatórios", href: "/reports", icon: "ri-bar-chart-line" },
+        ...(isAdmin ? [{ name: "Relatórios", href: "/reports", icon: "ri-bar-chart-line" }] : []),
         { name: "Configurações", href: "/settings", icon: "ri-settings-line" },
       ],
     },

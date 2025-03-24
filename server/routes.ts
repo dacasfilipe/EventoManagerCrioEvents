@@ -317,6 +317,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Attendees API
+  app.get("/api/attendees", async (req, res) => {
+    try {
+      const attendees = await storage.getAttendees();
+      res.json(attendees);
+    } catch (error) {
+      console.error("Error fetching all attendees:", error);
+      res.status(500).json({ message: "Failed to fetch all attendees" });
+    }
+  });
+  
   app.get("/api/events/:eventId/attendees", async (req, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
