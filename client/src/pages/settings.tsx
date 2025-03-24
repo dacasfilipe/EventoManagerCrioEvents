@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { z } from "zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { User } from "@shared/schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -122,6 +122,10 @@ export default function SettingsPage() {
             Gerencie suas preferências e configurações de conta.
           </p>
         </div>
+        <Button variant="outline" onClick={() => window.history.back()}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar
+        </Button>
       </div>
 
       <Tabs 
