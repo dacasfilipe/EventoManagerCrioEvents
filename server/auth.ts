@@ -77,6 +77,7 @@ export function setupAuth(app: Express) {
           clientID: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
           callbackURL: "/auth/google/callback",
+          proxy: true
         },
         async (accessToken, refreshToken, profile, done) => {
           try {
@@ -293,9 +294,21 @@ export function setupAuth(app: Express) {
 
     app.get("/auth/google/callback", 
       passport.authenticate("google", { 
-        failureRedirect: "/auth",
-        successRedirect: "/"
-      })
+        failureRedirect: "/auth"
+      }), (req, res) => {
+        // Registrar atividade de login
+        if (req.user) {
+          storage.createActivity({
+            action: "login",
+            description: `Usuário logado via Google: ${req.user.username}`,
+            userId: req.user.id,
+            timestamp: new Date()
+          }).catch(console.error);
+        }
+        
+        // Redirecionar para a página inicial após login
+        res.redirect("/");
+      }
     );
   }
 
