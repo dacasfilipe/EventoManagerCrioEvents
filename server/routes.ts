@@ -235,6 +235,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         delete updatedFields.status;
       }
       
+      // Tratar a data corretamente
+      if (updatedFields.date) {
+        try {
+          // Converter para objeto Date se for string
+          if (typeof updatedFields.date === 'string') {
+            updatedFields.date = new Date(updatedFields.date);
+          }
+          
+          // Verificar se a data é válida
+          if (isNaN(updatedFields.date.getTime())) {
+            return res.status(400).json({ message: "Data inválida" });
+          }
+        } catch (error) {
+          console.error("Erro ao processar data:", error);
+          return res.status(400).json({ message: "Formato de data inválido" });
+        }
+      }
+      
       const updatedEvent = await storage.updateEvent(id, updatedFields);
 
       // Create an activity for this update
