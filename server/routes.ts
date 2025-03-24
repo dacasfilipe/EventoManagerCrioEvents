@@ -18,6 +18,7 @@ import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
 import { scrypt, randomBytes } from "crypto";
 import { promisify } from "util";
+import { getAdminEmail, notifyAdminAboutNewEvent } from "./email";
 
 // Função para fazer hash de senha
 const scryptAsync = promisify(scrypt);
