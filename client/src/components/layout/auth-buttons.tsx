@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,11 +9,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, LogOut, User as UserIcon, ShieldCheck } from "lucide-react";
+import { Loader2, LogOut, User as UserIcon, ShieldCheck, Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
 
 export function AuthButtons() {
   const { user, isLoading, logoutMutation } = useAuth();
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   if (isLoading) {
     return (
@@ -36,7 +39,31 @@ export function AuthButtons() {
   }
 
   const handleLogout = () => {
-    logoutMutation.mutate();
+    try {
+      logoutMutation.mutate(undefined, {
+        onSuccess: () => {
+          toast({
+            title: "Logout bem-sucedido",
+            description: "Você foi desconectado com sucesso",
+          });
+          // Redirecionar para a página de autenticação
+          setLocation("/auth");
+        },
+        onError: (error) => {
+          console.error("Erro ao fazer logout:", error);
+          toast({
+            title: "Erro ao fazer logout",
+            description: error.message || "Ocorreu um erro ao tentar sair",
+            variant: "destructive",
+          });
+          // Em caso de erro, forçar redirecionamento para página de login
+          setLocation("/auth");
+        }
+      });
+    } catch (error) {
+      console.error("Erro ao chamar logout:", error);
+      setLocation("/auth");
+    }
   };
 
   const getInitials = (name: string) => {
