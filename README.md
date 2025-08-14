@@ -1,6 +1,29 @@
-# Event Management Platform
+# 🎉 Event Management Platform
 
-## Configuração para Deploy na Vercel
+Uma plataforma moderna de gerenciamento de eventos construída com React.js, TypeScript, Express.js e PostgreSQL. Projetada para simplificar o planejamento, acompanhamento e engajamento de eventos através de design intuitivo e recursos poderosos.
+
+## 🚀 Características Principais
+
+- **Autenticação Completa**: Sistema local + OAuth (Google, Facebook)
+- **Gerenciamento de Eventos**: Criação, edição e acompanhamento de eventos
+- **Registro de Participantes**: Sistema de inscrições e confirmações
+- **Upload de Imagens**: Para eventos com suporte a múltiplos formatos
+- **Dashboard Analítico**: Estatísticas e métricas em tempo real
+- **Design Responsivo**: Funciona perfeitamente em desktop, tablet e mobile
+- **Logs de Atividade**: Rastreamento completo de ações do sistema
+
+## 🛠️ Stack Tecnológica
+
+- **Frontend**: React.js + TypeScript + Vite
+- **Backend**: Express.js + TypeScript
+- **Banco de Dados**: PostgreSQL + Drizzle ORM
+- **UI/UX**: shadcn/ui + Tailwind CSS
+- **Autenticação**: Passport.js (Local + OAuth)
+- **Upload**: Multer
+- **Email**: Nodemailer
+- **Deploy**: Vercel (configurado)
+
+## 🏁 Deploy na Vercel
 
 ### Pré-requisitos
 1. Conta na Vercel (vercel.com)
