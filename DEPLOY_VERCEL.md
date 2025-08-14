@@ -1,5 +1,9 @@
 # 🚀 Guia Completo de Deploy na Vercel
 
+## ⚠️ IMPORTANTE - Correção Aplicada
+O arquivo `vercel.json` foi corrigido para resolver o erro:
+"The `functions` property cannot be used in conjunction with the `builds` property"
+
 ## ✅ Checklist Pré-Deploy
 
 - [ ] Conta na Vercel criada (vercel.com)

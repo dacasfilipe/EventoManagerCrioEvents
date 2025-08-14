@@ -117,7 +117,6 @@ public/uploads/*
 # Replit specific
 .replit
 replit.nix
-cookies.txt
 
 # Database
 *.db
